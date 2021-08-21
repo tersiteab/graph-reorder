@@ -54,9 +54,9 @@ int main(int argc, char** argv)
     if (read_csr(argv[argc-2], &G1)==-1)
         exit(1);
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("file reading done. Num vertices = %d and numEdges = %d\n", G1.numVertex, G1.numEdges);
-// #endif
+ #endif
 
 
     unsigned int degThresh = (G1.numVertex) + 1;
@@ -96,10 +96,10 @@ int main(int argc, char** argv)
 
 
 //    freeMem(&G1);
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("new number of vertices are %d\n", compG.numVertex);
     printf("new number of edges are %d\n", compG.numEdges);
-// #endif
+ #endif
 
 
 
@@ -138,9 +138,9 @@ int main(int argc, char** argv)
     for (unsigned int i=0; i<compG.numVertex; i++)
         nodeId[i] = i;
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("sorting begin\n");
-// #endif
+ #endif
 
     mergeSort(cost, nodeId, 0, compG.numVertex-1);
 
@@ -150,9 +150,9 @@ int main(int argc, char** argv)
 
 
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("sorting done\n");
-// #endif
+ #endif
 
 
 
@@ -176,18 +176,18 @@ int main(int argc, char** argv)
         myId++;
     }
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("cache model created\n");
-// #endif
+ #endif
 
     // nodeMap gives the new position of a vertex in the node array
     unsigned int* nodeMap = new unsigned int [compG.numVertex];
     for (unsigned int i=0; i<compG.numVertex; i++)
         nodeMap[nodeId[i]] = i;
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("node mapping computed\n");
-// #endif
+ #endif
 
     //keeps track of number of nodes in cache
     //if greater than cache size, need to evict
@@ -286,9 +286,9 @@ int main(int argc, char** argv)
         }
     }
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("reordering computed\n");
-// #endif
+ #endif
   if (maintain && nodeMap[0] != 0) {
     unsigned int zeros_map = nodeMap[0];
     nodeMap[0] = 0;
@@ -341,12 +341,13 @@ int main(int argc, char** argv)
     if (maintain && newNodeMap[0] != 0) {
       unsigned int zeros_map = newNodeMap[0];
       newNodeMap[0] = 0;
+      unsigned int z_id = newNodeId[0];
       newNodeId[0] = 0;
       for(unsigned int i = 1; i < G2.numVertex; ++i){
         if (newNodeMap[i] == 0) {
           newNodeMap[i] = zeros_map;
-          newNodeId[zeros_map] = i;
-          cout << "Mapped " << i << " to " << zeros_map << endl;
+          newNodeId[z_id] = i;
+//          cout << "Mapped " << i << " to " << zeros_map << endl;
           break;
         }
       }
@@ -381,9 +382,9 @@ int main(int argc, char** argv)
        tempId++;
     }
 
-// #ifdef DEBUG
+ #ifdef DEBUG
     printf("reordering applied\n");
-// #endif
+ #endif
 
 
     // write_csr(argv[argc-1], &G2);

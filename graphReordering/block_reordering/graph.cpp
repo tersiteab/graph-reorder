@@ -3,7 +3,7 @@
 using namespace std;
 
 void write_edge_list(char* filename, graph* G, unsigned int * nodeMap){
-    cout << "Entered\n";
+//    cout << "Entered\n";
     unsigned int * VI = G->VI;
     unsigned int * EI = G->EI;
     unordered_map<string, unsigned int> weights = G->weights;
@@ -26,7 +26,7 @@ void write_edge_list(char* filename, graph* G, unsigned int * nodeMap){
           s = indegree ? EI[j]: i;
           d = indegree ? i: EI[j];
           w = weights[get_map_key(map_to_node[s], map_to_node[d])];
-          cout << s << " -> " << d << " "<< w<< endl;
+//          cout << s << " -> " << d << " "<< w<< endl;
           if (weighted){
             fprintf(fp, "%d %d %d\n", s, d, w);
             // cout <<" weight: " <<  w << endl;
@@ -91,10 +91,10 @@ unsigned int filter (std::vector<unsigned int>& src, std::vector<unsigned int>& 
     {
         exists[src[i]]=true;
         exists[dst[i]]=true;
-        if (weighted) cout << src[i] << " " << dst[i] << " " << weights[i] << endl;
+//        if (weighted) cout << src[i] << " " << dst[i] << " " << weights[i] << endl;
 
     }
-    cout << "Filtering...";
+//    cout << "Filtering...";
 
     unsigned int* vertexMap = new unsigned int [numVertex]();
     unsigned int actualVertices = 0;
@@ -176,7 +176,7 @@ int read_csr (char* filename, graph* G)
 
     csr_convert(src, dst, G);
 
-    cout << "Read CSR done";
+//    cout << "Read CSR done";
     return 1;
 }
 void printGraph (graph* G)
