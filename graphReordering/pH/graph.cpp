@@ -19,7 +19,7 @@ void write_edge_list(char* filename, graph* G, unsigned int * nodeMap){
           s = indegree ? EI[j]: i;
           d = indegree ? i: EI[j];
           w = weights[get_map_key(map_to_node[s], map_to_node[d])];
-          cout << s << " " << d << " "<< w<< endl;
+//          cout << s << " " << d << " "<< w<< endl;
           if (weighted){
             fprintf(fp, "%d %d %d\n", s, d, w);
             // cout <<" weight: " <<  w << endl;
@@ -86,7 +86,7 @@ unsigned int filter (std::vector<unsigned int>& src, std::vector<unsigned int>& 
     {
         exists[src[i]]=true;
         exists[dst[i]]=true;
-        if (weighted) cout << src[i] << " " << dst[i] << " " << weights[i] << endl;
+//        if (weighted) cout << src[i] << " " << dst[i] << " " << weights[i] << endl;
     }
 
     unsigned int* vertexMap = new unsigned int [numVertex]();
