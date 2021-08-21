@@ -1,0 +1,11 @@
+pagerank algorithm for ranking nodes in a graph
+input -> csr binary file
+output -> dumpPr.txt (page rank of 1000 highest ranked nodes)
+Also outputs time of execution on the terminal
+
+Steps to run:
+
+1. make all
+2. To run single threaded pagerank
+    - ./prST <inputFileName> 
+    - ./prMT <inputFileName> <number of threads>
