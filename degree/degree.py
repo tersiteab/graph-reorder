@@ -54,8 +54,11 @@ for vertex, _ in ordered:
 
 sorted_output = []
 
-for src, dst, w in edge_list:
-    if mapping.get(src) is None:
+for edge in edge_list:
+	src = edge[0]
+	dst = edge[1]
+	w = edge[2] if args.weighted else None
+	if mapping.get(src) is None:
         mapping[src] = count
         count += 1
     if mapping.get(dst) is None:

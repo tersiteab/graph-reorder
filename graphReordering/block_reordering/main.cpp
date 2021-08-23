@@ -27,7 +27,7 @@ void mergeSort (unsigned int*, unsigned int*, unsigned int, unsigned int);
 bool weighted = false, maintain = false, indegree = false;
 int main(int argc, char** argv)
 {
-
+	cout << "============================" << endl;
     if (argc > 4)
     {
         CLSize = atoi(argv[1]);
@@ -399,6 +399,6 @@ int main(int argc, char** argv)
     delete[] isPlaced;
     delete[] newNodeId;
     delete[] newNodeMap;
-
+cout <<" ======================" << endl;
     return 0;
 }

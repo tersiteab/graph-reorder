@@ -48,7 +48,7 @@ int read_edge_list (char* filename, std::vector<unsigned int>& src, std::vector<
     FILE* fp = fopen (filename, "r");
     if (fp == NULL)
     {
-        fputs("file error", stderr);
+        fputs("file error to output", stderr);
         return -1;
     }
 

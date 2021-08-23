@@ -70,17 +70,14 @@ int read_edge_list (char* filename, std::vector<unsigned int>& src, std::vector<
         if (weighted) fscanf(fp, "%d", &w);
         numVertex = (srcVal > numVertex) ? srcVal : numVertex;
         numVertex = (dstVal > numVertex) ? dstVal : numVertex;
-        if (srcVal != dstVal)
-        {
-            src.push_back(srcVal);
-            dst.push_back(dstVal);
-            if (weighted) weights.push_back(w);
-            numEdgesRead++;
-        }
+        src.push_back(srcVal);
+        dst.push_back(dstVal);
+        if (weighted) weights.push_back(w);
+        numEdgesRead++;
     }
 
     fclose(fp);
-
+    cout << numEdgesRead << endl;
     return ++numVertex;
 }
 
