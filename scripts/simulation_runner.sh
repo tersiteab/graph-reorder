@@ -1,158 +1,200 @@
 #!/bin/bash
-applications=(pagerank bfs cc sssp)
+unweighted_apps=(pagerank cc)
+weighted_apps=(sssp bfs)
+
 directions=(pull push)
 threads=(single multi)
-graphs=(web-NotreDame rMat CA-AstroPh Amazon0302)
-declare -A statistics
-gem5=build/X86/gem5.opt
-config=configs/example/se_modified.py
-params="--cpu-type=TimingSimpleCPU --num-cpus=1 --sys-clock=2GHz --caches --cacheline_size=64 --num-dirs=4 --mem-size=4GB --l1i_size=16kB --l1i_assoc=4 --l1d_size=16kB --l1d_assoc=8 --l2cache --num-l2caches=1 --l2_size=2MB --l2_assoc=8 --ruby --topology=Crossbar"
+graphs=(web-NotreDame Slashdot0811 CA-AstroPh Amazon0302)
+
+input_path=~/materials/sample_edgelists/original
 app_path=~/workloads/applications
 dataset_path=~/workloads/datasets
 output="statistics.json"
-#deg reordering tests
-deg_variants=(indegree outdegree)
-
-echo -e "Original ordering: {" >> $output
-for app in "${applications[@]}"; do
-	echo -e "\n\t${app}: {" >> $output;
-	for g in "${graphs[@]}"; do
-		echo -e "\n\t\t${g}: {" >> $output;
-		g_name="${g}.wel"
-		for t in "${threads[@]}"; do
-			echo -e "\n\t\t\t${t}: {" >> $output;
-			for d in "${directions[@]}"; do
-				echo -e "\n\t\t\t\t${d}: " >> $output;
-				"$gem5 $config $params -c $app_path/$t/$d/$app -o $dataset_path/weighted/original/$g_name";
-				runtime=$(<"log.txt");
-				cycles=$(<"cycle_log.txt");
-				echo -e "runtime: $runtime seconds\tcycles: $cycles" >> $output;
-			done
-			echo -e "\n\t\t\t}" >> $output
-		done
-		echo -e "\n\t\t}" >> $output
-	done
-	echo -e "\n\t}" >> $output
-done
-echo -e "\n}" >> $output
-
-echo -e "\nDegree ordering: {" >> $output
-for app in "${applications[@]}"; do
-	echo -e "\n\t${app}: {" >> $output;
-	for g in "${graphs[@]}"; do
-		echo -e "\n\t\t${g}: {" >> $output;
-		g_name="${g}.wel"
-		for t in "${threads[@]}"; do
-			echo -e "\n\t\t\t${t}: {" >> $output;
-			for d in "${directions[@]}"; do
-				echo -e "\n\t\t\t\t${d}: {" >> $output;
-				for v in "${deg_variants[@]}"; do
-					echo -e "\n\t\t\t\t\t${v}: " >> $output;
-					$gem5 $config $params -c $app_path/$t/$d/$app -o $dataset_path/weighted/deg/$v/$g_name;
-					runtime=$(<"log.txt");
-					cycles=$(<"cycle_log.txt");
-					echo -e "runtime: $runtime seconds\tcycles: $cycles" >> $output;
-				done
-				echo -e "\n\t\t\t\t}" >> $output;
-			done
-			echo -e "\n\t\t\t}" >> $output;
-		done
-		echo -e "\n\t\t}" >> $output;
-	done
-	echo -e "\n\t}" >> $output;
-done
-echo -e "\n}" >> $output;
-
-#cl reordering
-cl_variants=(sort cluster)
-cl_variants2=(indegree outdegree)
-
-echo -e "\nClustering: {" >> $output
-for app in "${applications[@]}"; do
-	echo -e "\n\t${app}: {" >> $output
-	for g in "${graphs[@]}"; do
-		echo -e "\n\t\t${g}: {" >> $output;
-		g_name="${g}.wel"
-		for t in "${threads[@]}"; do
-			echo -e "\n\t\t\t${t}: {" >> $output;
-			for d in "${directions[@]}"; do
-				echo -e "\n\t\t\t\t${d}: {" >> $output;
-				for type in "${variants[@]}"; do
-					echo -e "\n\t\t\t\t\t${type}: {" >> $output;
-					for type2 in "${variants2[@]}"; do
-						echo -e "\n\t\t\t\t\t\t${type2}: " >> $output;
-						$gem5 $config $params -c $app_path/$t/$d/$app -o $dataset_path/weighted/cl/$type/$type2/$g_name;
+truncate -s 0 $output
+temp="temp.txt"
+function original() {
+	applications=(pagerank cc)
+	suffix='.el'
+	if [ $1 = 'weighted' ]
+	then
+		applications=(bfs sssp)
+		suffix='.wel'
+	fi
+	for app in "${applications[@]}"; do
+		echo "Original: ${app}"
+		echo -e "\n\t${app}: {" >> $output;
+		for g in "${graphs[@]}"; do
+			echo -e "\n\t\t${g}: {" >> $output;
+			g_name="${g}${suffix}"
+			for t in "${threads[@]}"; do
+				echo -e "\n\t\t\t${t}: {" >> $output;
+				for d in "${directions[@]}"; do
+					truncate -s 0 $temp
+					for i in {1..10}; do
+						$app_path/$t/$d/$app $input_path/$g_name;
 						runtime=$(<"log.txt");
-						cycles=$(<"cycle_log.txt");
-						echo -e "runtime: $runtime seconds\tcycles: $cycles" >> $output;
+						echo -e $runtime >> $temp;
 					done
-					echo -e "\n\t\t\t\t\t}" >> $output;
+					#cat $temp
+					python3 average.py;
+					avg=$(<$temp);
+					echo -e  "\t\t\t\t${d} runtime: $avg ms\n" >> $output;
 				done
-				echo -e "\n\t\t\t\t}" >> $output;
+				echo -e "\t\t\t}" >> $output
 			done
-			echo -e "\n\t\t\t}" >> $output;
+			echo -e "\t\t}" >> $output
 		done
-		echo -e "\n\t\t}" >> $output;
+		echo -e "\t}" >> $output
 	done
-	echo -e "\n\t}" >> $output;
-done
-echo -e "\n}" >> $output;
-
+}
+function gorder() {
+	for app in "${unweighted_apps[@]}";do
+		echo -e "\n\t${app}: {" >> $output;
+		for g in "${graphs[@]}"; do
+			g_name="${g}.el"
+			echo -e "\n${g}: {" >> $output
+			for t in "${threads[@]}"; do
+				echo -e "\n\t\t\t${t}: {" >> $output;
+				for d in "${directions[@]}"; do
+					truncate -s 0 $temp
+					for i in {1..10}; do
+						$app_path/$t/$d/$app $dataset_path/unweighted/gorder/$g_name;
+						runtime=$(<"log.txt");
+						echo -e $runtime >> $temp;
+					done
+					#cat $temp
+					python3 average.py;
+					avg=$(<$temp);
+					echo -e  "\t\t\t\t${d} runtime: $avg ms\n" >> $output;
+				done
+				echo -e "\t\t\t}" >> $output;
+			done
+			echo -e "\t\t}" >> $output;
+		done
+		echo -e "\t}" >> $output;
+	done
+}
 #ph reordering
+function ph() {
 ph_variants=(indegree outdegree)
-echo -e "\npH reordering: {" >> $output
+suffix='.el'
+applications=(pagerank cc)
+if [ $1 = 'weighted' ]
+then 
+	applications=(bfs sssp)
+	suffix='.wel'
+fi
 for app in "${applications[@]}"; do
 	echo -e "\n\t${app}: {" >> $output;
 	for g in "${graphs[@]}"; do
-		g_name="${g}.wel"
+		g_name="${g}${suffix}"
 		echo -e "\n\t\t${g}: {" >> $output;
 		for t in "${threads[@]}"; do
 			echo -e "\n\t\t\t${t}: {" >> $output;
 			for d in "${directions[@]}"; do
-				echo -e "\n\t\t\t\t${d}: {" >> $output;
-				for v in "${ph_variants[@]}"; do
-					echo -e "\n\t\t\t\t\t${v}: " >> $output;
-					$gem5 $config $params -c $app_path/$t/$d/$app - $dataset_path/weighted/ph/$v/$g_name;
+				truncate -s 0 $temp
+				for i in {1..10}; do
+					$app_path/$t/$d/$app $dataset_path/$1/ph/$g_name;
 					runtime=$(<"log.txt");
-					cycles=$(<"cycle_log.txt");
-					echo -e "runtime: $runtime seconds\tcycles: $cycles" >> $output;
+					echo -e $runtime >> $temp;
 				done
-				echo -e "\n\t\t\t\t}" >> $output;
+				#cat $temp
+				python3 average.py;
+				avg=$(<$temp);
+				echo -e  "\t\t\t\t${d} runtime: $avg ms\n" >> $output;
 			done
-			echo -e "\n\t\t\t}" >> $output;
+			echo -e "\t\t\t}" >> $output;
 		done
-		echo -e "\n\t\t}" >> $output;
+		echo -e "\t\t}" >> $output;
 	done
-	echo -e "\n\t}" >> $output;
+	echo -e "\t}" >> $output;
 done
-echo -e "\n}" >> $output
-
+}
 #br reordering
-br_variants=(indegree outdegree)
-
-echo -e "\nBlock reordering: {" >> $output
+function br() {
+suffix='.el'
+applications=(pagerank cc)
+if [ $1 = 'weighted' ]
+then
+	applications=(bfs sssp)
+	suffix='.wel'
+fi
 for app in "${applications[@]}"; do
-	echo -e "\n\t${app}: {" >> $output;
+	echo -e "\t${app}: {" >> $output;
 	for g in "${graphs[@]}"; do
-		g_name="${g}.wel"
+		g_name="${g}${suffix}"
 		echo -e "\n\t\t${g}: {" >> $output;
 		for t in "${threads[@]}"; do
 			echo -e "\n\t\t\t${t}: {" >> $output;
 			for d in "${directions[@]}"; do
-				echo -e "\n\t\t\t\t${d}: {" >> $output;
-				for v in "${br_variants[@]}" do;
-					echo -e "\n\t\t\t\t\t${v}: " >> $output;
-					$gem5 $config $params -c $app_path/$t/$d/$app -o $dataset_path/weighted/br/$v/$g_name;
+				truncate -s 0 $temp
+				for i in  {1..10}; do
+					$app_path/$t/$d/$app $dataset_path/$1/br/$g_name;
 					runtime=$(<"log.txt");
-					cycles=$(<"cycle_log.txt");
-					echo -e "runtime: $runtime seconds\tcycles: $cycles" >> $output;
+					echo -e $runtime >> $temp;
 				done
-				echo -e "\n\t\t\t\t}" >> $output;
+				#cat $temp
+				python3 average.py;
+				avg=$(<$temp)
+				echo -e "\t\t\t\t${d}: $avg ms\n" >> $output;
 			done
-			echo -e "\n\t\t\t}" >> $output;
+			echo -e "\t\t\t}" >> $output;
 		done
-		echo -e "\n\t\t}" >> $output;
+		echo -e "\t\t}" >> $output;
 	done
-	echo -e "\n\t}" >> $output;
+	echo -e "\t}" >> $output;
 done
-echo -e "\n}" >> $output;
+}
+function rabbit() {
+suffix='.el'
+applications=(pagerank cc)
+if [ $1 = 'weighted' ]
+then
+	applications=(bfs sssp)
+	suffix='.wel'
+fi
+for app in "${applications[@]}"; do
+	echo -e "\n\t${app}: {" >> $output;
+	for g in "${graphs[@]}"; do
+		g_name="${g}${suffix}"
+		echo -e "\n\t\t${g}: {" >> $output;
+		for t in "${threads[@]}"; do
+			echo -e "\n\t\t\t${t}: {" >> $output;
+			for d in "${directions[@]}"; do
+				truncate -s 0 $temp
+				for i in  {1..10}; do
+					$app_path/$t/$d/$app $dataset_path/$1/rabbit/$g_name;
+					runtime=$(<"log.txt");
+					echo -e $runtime >> $temp;
+				done
+				#cat $temp
+				python3 average.py;
+				avg=$(<$temp)
+				echo -e "\t\t\t\t${d}: $avg ms\n" >> $output;
+			done
+			echo -e "\t\t\t}" >> $output;
+		done
+		echo -e "\t\t}" >> $output;
+	done
+	echo -e "\t}" >> $output;
+done
+}
+echo -e "\nOriginal ordering: {" >> $output
+original 'unweighted'
+original 'weighted'
+echo -e "}" >> $output
+echo -e "\npH Reordering: {" >> $output
+ph 'unweighted'
+ph 'weighted'
+echo -e "}" >> $output
+echo -e "\nBlock Reordering: {" >> $output
+br 'unweighted'
+br 'weighted'
+echo -e "}" >> $output
+echo -e "\nRabbit Reordering: {" >> $output
+rabbit 'unweighted'
+rabbit 'weighted'
+echo -e "}" >> $output
+echo -e "\nGorder reordering: {" >> $output;
+gorder
+echo -e "}" >> $output
