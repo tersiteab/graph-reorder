@@ -68,6 +68,10 @@ for edge in edge_list:
         [mapping.get(src), mapping.get(dst), edge_weights.get((src, dst))] if args.weighted else [mapping.get(src),
                                                                                                   mapping.get(dst)])
 print("Done ordering")
+# write new order
+with open('new_order.el', 'w') as fout:
+	for i in range(len(mapping)):
+		fout.write('{}\n'.format(mapping[i]))
 
 # write ordered graph into output
 with open(args.output, 'w') as fout:

@@ -51,7 +51,7 @@ avg = edge_count / n
 hub_nodes = set()
 for src, dst in edge_list:
     edges_src = edges_by_node.get(src)
-    edges_dst = edges_by_node.get(src)
+    edges_dst = edges_by_node.get(dst)
     if edges_src and len(edges_src) >= avg:
         hub_nodes.add(src)
     if edges_dst and len(edges_dst) >= avg:
@@ -87,7 +87,10 @@ hub_ordered = [[mapping[s], mapping[d], edge_weights.get((s, d))] if args.weight
                s, d
                in edge_list]
 print("Done hub ordering")
-
+# write new orde
+with open('new_order.el', 'w') as fout:
+	for i in range(len(mapping)):
+		fout.write('{}\n'.format(mapping[i]))
 # write ordered graph into output file
 with open(args.output, 'w') as fout:
     if args.weighted:

@@ -34,7 +34,7 @@ if args.weighted:
 		mapped_to_zero = None
 		while in_line:
 			nodeMap = int(in_line)
-			if not zeros_map:
+			if  zeros_map is None:
 				zeros_map = nodeMap
 			if nodeMap==0:
 				mapped_to_zero=node
@@ -56,7 +56,7 @@ else:
 		mapped_to_zero = None
 		while in_line:
 			nodeMap = int(in_line)
-			if not zeros_map:
+			if zeros_map is None:
 				zeros_map = nodeMap
 			if nodeMap == 0:
 				mapped_to_zero = node

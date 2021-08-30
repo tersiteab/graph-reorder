@@ -23,11 +23,13 @@ with open(args.input, "r") as fin:
 		vertices.add(dst)
 		line = fin.readline()
 mapping = {}
+print("Number of unique vertices read: ", len(vertices))
 if args.weighted:
+	count = 1
 	with open("input.el", "w") as fout:
 		for s, d, _ in el:
 			fout.write("{} {}\n".format(s, d))
-	subprocess.run([program, "./input.el", "./output.el"])
+	subprocess.run([program,"532480", "./input.el", "./output.el"])
 	with open("new_order.el", "r") as fin, open(args.output, "w") as fout:
 		in_line = fin.readline()
 		node = 0
@@ -35,21 +37,22 @@ if args.weighted:
 		mapped_to_zero=None
 		while in_line:
 			nodeMap = int(in_line)
-			if not zeros_map:
+			if zeros_map is None:
 				zeros_map=nodeMap
 			if nodeMap==0:
 				mapped_to_zero=node
 			mapping[node] = nodeMap
 			node += 1
 			in_line = fin.readline()
+		print("Number of vertices read after reordering: ", node)
 		if args.maintain:
 			mapping[mapped_to_zero]=zeros_map
 			mapping[0]=0
 		for s, d, w in el:
-			fout.write("{} {} {}\n".format(mapping.get(s, s), mapping.get(d, d), w))
+			fout.write("{} {} {}\n".format(mapping[s], mapping[d], w))
 
 else:
-	subprocess.run([args.program, args.input, "output.el" if args.maintain else args.output])
+	subprocess.run([args.program, "532480", args.input, "output.el" if args.maintain else args.output])
 	if args.maintain:
 		with open("new_order.el", "r") as fin, open(args.output, "w") as fout:
 			in_line = fin.readline()
@@ -58,7 +61,7 @@ else:
 			mapped_to_zero=None
 			while in_line:
 				nodeMap = int(in_line)
-				if not zeros_map:
+				if zeros_map is None:
 					zeros_map = nodeMap
 				if nodeMap == 0:
 					mapped_to_zero = node
@@ -68,4 +71,4 @@ else:
 			mapping[0] = 0
 			mapping[mapped_to_zero]=zeros_map
 			for s,d in el:
-				fout.write("{} {}\n".format(mapping.get(s, s), mapping.get(d, d)))
+				fout.write("{} {}\n".format(mapping[s], mapping[d]))
